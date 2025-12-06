@@ -2,12 +2,18 @@
 """
 TAFE Leak Detection - Login Portal with Authentication
 Authenticates against FastAPI backend and redirects to dashboard.
+Automatically starts the dashboard subprocess.
 """
 import dash
 from dash import html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 import requests
 import os
+import subprocess
+import sys
+import time
+import threading
+import atexit
 from flask import session, redirect
 
 # Configuration
@@ -15,6 +21,10 @@ DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
 PORT = int(os.environ.get("LOGIN_PORT", 8050))
 API_URL = os.environ.get("API_URL", "http://localhost:8000/api/v1")
 DASHBOARD_URL = os.environ.get("DASHBOARD_URL", "http://localhost:8051")
+DASHBOARD_PORT = int(os.environ.get("DASHBOARD_PORT", 8051))
+
+# Global variable to track dashboard process
+dashboard_process = None
 
 # Create Dash app
 app = dash.Dash(
@@ -356,10 +366,98 @@ def handle_login(n_clicks, username, password):
         return f"Error: {str(e)}", True, "", False, None, dash.no_update
 
 
+def start_dashboard():
+    """Start the dashboard app as a subprocess."""
+    global dashboard_process
+
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    dashboard_script = os.path.join(script_dir, "app.py")
+
+    # Set environment variables for the subprocess
+    env = os.environ.copy()
+    env["DEMO_MODE"] = "true"
+    env["DASHBOARD_PORT"] = str(DASHBOARD_PORT)
+
+    # Start the dashboard process
+    try:
+        dashboard_process = subprocess.Popen(
+            [sys.executable, dashboard_script],
+            cwd=script_dir,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            creationflags=(
+                subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+            ),
+        )
+        print(f"✅ Dashboard started (PID: {dashboard_process.pid})")
+
+        # Give the dashboard time to start
+        time.sleep(3)
+
+        # Check if process is still running
+        if dashboard_process.poll() is None:
+            print(f"📊 Dashboard is running at: {DASHBOARD_URL}")
+            return True
+        else:
+            print("❌ Dashboard failed to start")
+            return False
+
+    except Exception as e:
+        print(f"❌ Failed to start dashboard: {e}")
+        return False
+
+
+def stop_dashboard():
+    """Stop the dashboard subprocess on exit."""
+    global dashboard_process
+    if dashboard_process and dashboard_process.poll() is None:
+        print("\n🛑 Stopping dashboard...")
+        try:
+            if sys.platform == "win32":
+                dashboard_process.terminate()
+            else:
+                dashboard_process.terminate()
+            dashboard_process.wait(timeout=5)
+            print("✅ Dashboard stopped")
+        except Exception as e:
+            print(f"⚠️ Error stopping dashboard: {e}")
+            dashboard_process.kill()
+
+
+# Register cleanup function
+atexit.register(stop_dashboard)
+
+
+def check_dashboard_running():
+    """Check if dashboard is accessible."""
+    try:
+        response = requests.get(DASHBOARD_URL, timeout=2)
+        return response.status_code == 200
+    except:
+        return False
+
+
 if __name__ == "__main__":
+    print("=" * 60)
     print("🔐 TAFE Leak Detection - Login Portal")
-    print(f"📍 Running on: http://127.0.0.1:{PORT}")
-    print(f"🔗 API Backend: {API_URL}")
-    print(f"📊 Dashboard: {DASHBOARD_URL}")
-    print("-" * 50)
-    app.run(debug=DEBUG, host="127.0.0.1", port=PORT)
+    print("=" * 60)
+
+    # Check if dashboard is already running
+    if check_dashboard_running():
+        print(f"📊 Dashboard already running at: {DASHBOARD_URL}")
+    else:
+        print("🚀 Starting dashboard...")
+        start_dashboard()
+
+    print("-" * 60)
+    print(f"📍 Login Portal: http://127.0.0.1:{PORT}")
+    print(f"📊 Dashboard:    {DASHBOARD_URL}")
+    print(f"🔗 API Backend:  {API_URL}")
+    print("-" * 60)
+    print("💡 Use demo credentials: admin/admin123 or operator/operator123")
+    print("💡 Press Ctrl+C to stop both servers")
+    print("=" * 60)
+
+    app.run(debug=DEBUG, host="127.0.0.1", port=PORT, use_reloader=False)

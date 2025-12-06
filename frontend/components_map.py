@@ -50,6 +50,9 @@ def load_property_school_mapping() -> Dict[str, Dict]:
 
     # Try demo mapping first (faster), then full mapping
     possible_paths = [
+        # Demo mapping in data/ subfolder - PRIORITY
+        os.path.join(os.path.dirname(__file__), "data", "demo_school_mapping.csv"),
+        # Demo mapping in same directory as fallback
         os.path.join(os.path.dirname(__file__), "demo_school_mapping.csv"),
         os.path.join(os.path.dirname(__file__), "property_school_mapping.csv"),
     ]
@@ -58,10 +61,11 @@ def load_property_school_mapping() -> Dict[str, Dict]:
     for path in possible_paths:
         if os.path.exists(path):
             mapping_path = path
+            print(f"✅ Loading school mapping from: {path}")
             break
 
     if mapping_path is None:
-        print(f"Warning: No property-school mapping found")
+        print(f"⚠️ Warning: No property-school mapping found")
         _PROPERTY_SCHOOL_MAP = {}
         return _PROPERTY_SCHOOL_MAP
 
@@ -102,8 +106,11 @@ def get_school_for_property(property_id: str) -> Optional[Dict]:
 def get_gis_data_path() -> str:
     """Get the path to the GIS JSON file"""
     possible_paths = [
-        # Demo data (50 schools) for fast loading
+        # Demo data (50 schools) in data/ subfolder - PRIORITY
+        os.path.join(os.path.dirname(__file__), "data", "demo_schools_gis.json"),
+        # Demo data in same directory as fallback
         os.path.join(os.path.dirname(__file__), "demo_schools_gis.json"),
+        # Full GIS data (2300+ schools) - only if demo not found
         os.path.join(
             os.path.dirname(__file__),
             "..",
@@ -116,8 +123,10 @@ def get_gis_data_path() -> str:
 
     for path in possible_paths:
         if os.path.exists(path):
+            print(f"✅ Loading GIS data from: {path}")
             return path
 
+    print("⚠️ No GIS data file found!")
     return possible_paths[0]
 
 
@@ -440,54 +449,79 @@ def create_school_marker(school: Dict, is_leak_alert: bool = False) -> dl.Marker
 
 
 def create_map_legend(is_leak_view: bool = False) -> html.Div:
-    """Create the map legend component
+    """Create an elegant map legend component
 
     Args:
         is_leak_view: If True, show leak-specific legend items
     """
     if is_leak_view:
         legend_items = [
-            ("Leak Detected", STATUS_COLORS["leak"]),
-            ("Critical", STATUS_COLORS["critical"]),
-            ("Investigating", STATUS_COLORS["investigating"]),
-            ("Warning/Dismissed", STATUS_COLORS["warning"]),
+            ("Leak Detected", STATUS_COLORS["leak"], "💧"),
+            ("Critical", STATUS_COLORS["critical"], "🚨"),
+            ("Investigating", STATUS_COLORS["investigating"], "🔍"),
+            ("Warning", STATUS_COLORS["warning"], "⚠️"),
         ]
+        title = "Alert Status"
     else:
         legend_items = [
-            ("Normal", STATUS_COLORS["normal"]),
-            ("Warning", STATUS_COLORS["warning"]),
-            ("Leak Detected", STATUS_COLORS["leak"]),
-            ("Critical", STATUS_COLORS["critical"]),
+            ("Normal", STATUS_COLORS["normal"], "✅"),
+            ("Warning", STATUS_COLORS["warning"], "⚠️"),
+            ("Leak", STATUS_COLORS["leak"], "💧"),
+            ("Critical", STATUS_COLORS["critical"], "🚨"),
         ]
+        title = "Status"
 
     return html.Div(
         [
-            html.H6(
-                "Leak Status",
-                style={"marginBottom": "10px", "fontWeight": "bold", "color": "#333"},
+            html.Div(
+                [
+                    html.Span("📊 ", style={"fontSize": "12px"}),
+                    html.Span(
+                        title,
+                        style={
+                            "fontWeight": "700",
+                            "color": "#374151",
+                            "fontSize": "12px",
+                            "letterSpacing": "0.5px",
+                        },
+                    ),
+                ],
+                style={
+                    "marginBottom": "10px",
+                    "paddingBottom": "8px",
+                    "borderBottom": "1px solid #E5E7EB",
+                },
             ),
             *[
                 html.Div(
                     [
-                        html.Span(
+                        html.Div(
                             style={
-                                "display": "inline-block",
-                                "width": "12px",
-                                "height": "12px",
+                                "width": "14px",
+                                "height": "14px",
                                 "backgroundColor": color,
                                 "borderRadius": "50%",
-                                "marginRight": "8px",
+                                "marginRight": "10px",
+                                "boxShadow": f"0 0 0 3px {color}30",
                             }
                         ),
-                        html.Span(label, style={"fontSize": "12px", "color": "#333"}),
+                        html.Span(
+                            label,
+                            style={
+                                "fontSize": "12px",
+                                "color": "#4B5563",
+                                "fontWeight": "500",
+                            },
+                        ),
                     ],
                     style={
                         "display": "flex",
                         "alignItems": "center",
-                        "marginBottom": "5px",
+                        "marginBottom": "8px",
+                        "padding": "4px 0",
                     },
                 )
-                for label, color in legend_items
+                for label, color, icon in legend_items
             ],
         ],
         style={
@@ -495,10 +529,12 @@ def create_map_legend(is_leak_view: bool = False) -> html.Div:
             "bottom": "30px",
             "right": "10px",
             "backgroundColor": "white",
-            "padding": "10px 15px",
-            "borderRadius": "8px",
-            "boxShadow": "0 2px 6px rgba(0,0,0,0.3)",
+            "padding": "14px 18px",
+            "borderRadius": "12px",
+            "boxShadow": "0 4px 15px rgba(0,0,0,0.1)",
             "zIndex": "1000",
+            "minWidth": "120px",
+            "border": "1px solid #E5E7EB",
         },
     )
 
@@ -572,52 +608,461 @@ def create_stats_cards(schools: List[Dict]) -> dbc.Row:
     )
 
 
+def create_circle_marker(school: Dict, is_leak_alert: bool = False) -> dl.CircleMarker:
+    """Create a beautiful circle marker for a school
+
+    Args:
+        school: School data dictionary
+        is_leak_alert: If True, show enhanced leak alert information
+    """
+    status = school.get("leak_status", "unknown")
+    color = STATUS_COLORS.get(status, STATUS_COLORS["unknown"])
+
+    # Larger radius for leak alerts, smaller for normal
+    if is_leak_alert:
+        radius = 12 + min(
+            school.get("confidence", 0) / 10, 8
+        )  # 12-20 based on confidence
+        fill_opacity = 0.8
+        weight = 3
+    else:
+        radius = 8
+        fill_opacity = 0.6
+        weight = 2
+
+    # Build popup content
+    popup_items = [
+        html.Div(
+            [
+                html.H6(
+                    school["school_name"],
+                    style={
+                        "marginBottom": "8px",
+                        "color": "#1F2937",
+                        "fontWeight": "700",
+                        "fontSize": "14px",
+                        "borderBottom": f"2px solid {color}",
+                        "paddingBottom": "6px",
+                    },
+                ),
+                html.Div(
+                    [
+                        html.Span(
+                            status.upper(),
+                            style={
+                                "color": "white",
+                                "fontWeight": "600",
+                                "backgroundColor": color,
+                                "padding": "3px 10px",
+                                "borderRadius": "12px",
+                                "fontSize": "11px",
+                                "letterSpacing": "0.5px",
+                            },
+                        ),
+                    ],
+                    style={"marginBottom": "10px"},
+                ),
+            ]
+        ),
+        html.Div(
+            [
+                html.Div(
+                    [
+                        html.Span("📍 ", style={"fontSize": "12px"}),
+                        html.Span(
+                            f"{school['suburb']}, {school['postcode']}",
+                            style={"color": "#4B5563", "fontSize": "12px"},
+                        ),
+                    ],
+                    style={"marginBottom": "4px"},
+                ),
+                html.Div(
+                    [
+                        html.Span("🏛️ ", style={"fontSize": "12px"}),
+                        html.Span(
+                            school["region"],
+                            style={"color": "#4B5563", "fontSize": "12px"},
+                        ),
+                    ],
+                    style={"marginBottom": "4px"},
+                ),
+            ]
+        ),
+    ]
+
+    # Add leak-specific information
+    if is_leak_alert and school.get("event_id"):
+        popup_items.append(
+            html.Div(
+                [
+                    html.Hr(style={"margin": "10px 0", "borderColor": "#E5E7EB"}),
+                    html.Div(
+                        [
+                            html.Span("🚨 ", style={"fontSize": "14px"}),
+                            html.Strong(
+                                "LEAK ALERT",
+                                style={"color": color, "fontSize": "12px"},
+                            ),
+                        ],
+                        style={"marginBottom": "8px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Span(
+                                        "Confidence",
+                                        style={"color": "#6B7280", "fontSize": "11px"},
+                                    ),
+                                    html.Div(
+                                        f"{school.get('confidence', 0):.0f}%",
+                                        style={
+                                            "color": color,
+                                            "fontWeight": "700",
+                                            "fontSize": "18px",
+                                        },
+                                    ),
+                                ],
+                                style={
+                                    "textAlign": "center",
+                                    "padding": "8px",
+                                    "backgroundColor": f"{color}15",
+                                    "borderRadius": "8px",
+                                    "flex": "1",
+                                    "marginRight": "8px",
+                                },
+                            ),
+                            html.Div(
+                                [
+                                    html.Span(
+                                        "Volume Lost",
+                                        style={"color": "#6B7280", "fontSize": "11px"},
+                                    ),
+                                    html.Div(
+                                        f"{school.get('volume_lost_kL', 0):.1f} kL",
+                                        style={
+                                            "color": "#1F2937",
+                                            "fontWeight": "700",
+                                            "fontSize": "16px",
+                                        },
+                                    ),
+                                ],
+                                style={
+                                    "textAlign": "center",
+                                    "padding": "8px",
+                                    "backgroundColor": "#F3F4F6",
+                                    "borderRadius": "8px",
+                                    "flex": "1",
+                                },
+                            ),
+                        ],
+                        style={"display": "flex", "marginBottom": "8px"},
+                    ),
+                    html.Div(
+                        [
+                            html.Span("📅 ", style={"fontSize": "11px"}),
+                            html.Span(
+                                f"{school.get('start_day', 'N/A')[:10]} → {school.get('last_day', 'N/A')[:10]}",
+                                style={"color": "#6B7280", "fontSize": "11px"},
+                            ),
+                        ],
+                    ),
+                ]
+            )
+        )
+    else:
+        # Show usage data for "All Schools" view
+        variance = school.get("variance", 0)
+        variance_color = (
+            "#EF4444" if variance > 10 else "#22C55E" if variance < -5 else "#6B7280"
+        )
+        popup_items.append(
+            html.Div(
+                [
+                    html.Hr(style={"margin": "10px 0", "borderColor": "#E5E7EB"}),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Span(
+                                        "Daily Usage",
+                                        style={"color": "#6B7280", "fontSize": "11px"},
+                                    ),
+                                    html.Div(
+                                        f"{school.get('daily_usage', 'N/A')} kL",
+                                        style={
+                                            "color": "#1F2937",
+                                            "fontWeight": "600",
+                                            "fontSize": "14px",
+                                        },
+                                    ),
+                                ],
+                                style={
+                                    "textAlign": "center",
+                                    "padding": "6px",
+                                    "flex": "1",
+                                },
+                            ),
+                            html.Div(
+                                [
+                                    html.Span(
+                                        "Variance",
+                                        style={"color": "#6B7280", "fontSize": "11px"},
+                                    ),
+                                    html.Div(
+                                        f"{variance:+.1f}%",
+                                        style={
+                                            "color": variance_color,
+                                            "fontWeight": "600",
+                                            "fontSize": "14px",
+                                        },
+                                    ),
+                                ],
+                                style={
+                                    "textAlign": "center",
+                                    "padding": "6px",
+                                    "flex": "1",
+                                },
+                            ),
+                        ],
+                        style={
+                            "display": "flex",
+                            "backgroundColor": "#F9FAFB",
+                            "borderRadius": "8px",
+                        },
+                    ),
+                ]
+            )
+        )
+
+    popup_content = html.Div(
+        popup_items,
+        style={
+            "minWidth": "240px",
+            "maxWidth": "280px",
+            "padding": "4px",
+        },
+    )
+
+    return dl.CircleMarker(
+        center=[school["latitude"], school["longitude"]],
+        radius=radius,
+        color=color,
+        fillColor=color,
+        fillOpacity=fill_opacity,
+        weight=weight,
+        children=[
+            dl.Tooltip(
+                school["school_name"],
+                direction="top",
+                offset=[0, -10],
+                opacity=0.9,
+            ),
+            dl.Popup(
+                popup_content,
+                closeButton=True,
+                autoClose=False,
+                closeOnClick=False,
+            ),
+        ],
+    )
+
+
 def create_map_component(
     schools: List[Dict], height: str = "500px", is_leak_view: bool = False
 ) -> html.Div:
-    """Create the main interactive map component
+    """Create the main interactive map component with beautiful dark theme
 
     Args:
         schools: List of school dictionaries with location and status info
         height: CSS height for the map
         is_leak_view: If True, markers are from leak alerts (show enhanced popups)
     """
-    # Calculate center
+    # Calculate bounds to fit all schools
     if schools:
-        avg_lat = sum(s["latitude"] for s in schools) / len(schools)
-        avg_lng = sum(s["longitude"] for s in schools) / len(schools)
+        lats = [s["latitude"] for s in schools]
+        lngs = [s["longitude"] for s in schools]
+
+        # Calculate center
+        avg_lat = sum(lats) / len(lats)
+        avg_lng = sum(lngs) / len(lngs)
         center = [avg_lat, avg_lng]
-        zoom = 6 if len(schools) > 10 else 8
+
+        # Calculate appropriate zoom based on spread
+        lat_spread = max(lats) - min(lats)
+        lng_spread = max(lngs) - min(lngs)
+        max_spread = max(lat_spread, lng_spread)
+
+        # For leak view with few markers, zoom in more
+        if is_leak_view and len(schools) <= 10:
+            # Ensure minimum spread for proper padding
+            if max_spread < 0.01:
+                # Single point or very close points - zoom in close
+                zoom = 14
+                padding = 0.02
+            elif max_spread < 0.1:
+                zoom = 12
+                padding = 0.05
+            elif max_spread < 0.5:
+                zoom = 11
+                padding = 0.08
+            else:
+                zoom = 10
+                padding = 0.1
+        else:
+            # Normal view for all schools
+            if max_spread < 0.5:
+                zoom = 12
+                padding = 0.1
+            elif max_spread < 1:
+                zoom = 10
+                padding = 0.1
+            elif max_spread < 2:
+                zoom = 9
+                padding = 0.1
+            elif max_spread < 4:
+                zoom = 8
+                padding = 0.1
+            elif max_spread < 8:
+                zoom = 7
+                padding = 0.1
+            else:
+                zoom = 6
+                padding = 0.1
+
+        # Set bounds for the map with appropriate padding
+        bounds = [
+            [min(lats) - padding, min(lngs) - padding],
+            [max(lats) + padding, max(lngs) + padding],
+        ]
     else:
         center = [-33.8688, 151.2093]  # Sydney default
         zoom = 6
+        bounds = None
 
-    # Create markers with appropriate type
+    # Create circle markers (more beautiful than pin markers)
     markers = [
-        create_school_marker(school, is_leak_alert=is_leak_view) for school in schools
+        create_circle_marker(school, is_leak_alert=is_leak_view) for school in schools
     ]
 
-    map_component = dl.Map(
-        id="schools-leak-map",
-        center=center,
-        zoom=zoom,
-        style={"width": "100%", "height": height, "borderRadius": "12px"},
-        children=[
-            dl.TileLayer(
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                attribution="&copy; OpenStreetMap contributors",
-            ),
-            dl.LayerGroup(id="school-markers", children=markers),
-            dl.ScaleControl(position="bottomleft"),
-        ],
+    # Choose tile layer based on view
+    # Using CartoDB Positron for a clean, professional look
+    tile_layer = dl.TileLayer(
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains="abcd",
+        maxZoom=19,
     )
+
+    # Build map children
+    map_children = [
+        tile_layer,
+        dl.LayerGroup(id="school-markers", children=markers),
+        dl.ScaleControl(position="bottomleft"),
+        dl.FullScreenControl(position="topright"),
+    ]
+
+    # Create unique map ID to force re-render when switching views
+    map_id = f"schools-leak-map-{'leak' if is_leak_view else 'all'}"
+
+    # For leak view, prioritize bounds to ensure proper zoom
+    if is_leak_view and bounds:
+        map_component = dl.Map(
+            id=map_id,
+            bounds=bounds,
+            boundsOptions={"padding": [50, 50]},  # Add padding around markers
+            style={
+                "width": "100%",
+                "height": height,
+                "borderRadius": "12px",
+                "boxShadow": "0 4px 20px rgba(0, 0, 0, 0.15)",
+            },
+            children=map_children,
+            zoomControl=True,
+            scrollWheelZoom=True,
+            doubleClickZoom=False,
+            dragging=True,
+        )
+    else:
+        map_component = dl.Map(
+            id=map_id,
+            center=center,
+            zoom=zoom,
+            bounds=bounds,
+            style={
+                "width": "100%",
+                "height": height,
+                "borderRadius": "12px",
+                "boxShadow": "0 4px 20px rgba(0, 0, 0, 0.15)",
+            },
+            children=map_children,
+            zoomControl=True,
+            scrollWheelZoom=True,
+            doubleClickZoom=False,
+            dragging=True,
+        )
 
     return html.Div(
         [
+            # Map controls overlay
+            html.Div(
+                [
+                    # Zoom to fit button
+                    html.Button(
+                        "🎯 Fit All",
+                        id="btn-fit-bounds",
+                        style={
+                            "position": "absolute",
+                            "top": "10px",
+                            "left": "10px",
+                            "zIndex": "1000",
+                            "padding": "8px 12px",
+                            "backgroundColor": "white",
+                            "border": "2px solid rgba(0,0,0,0.2)",
+                            "borderRadius": "6px",
+                            "cursor": "pointer",
+                            "fontSize": "12px",
+                            "fontWeight": "600",
+                            "boxShadow": "0 2px 6px rgba(0,0,0,0.15)",
+                        },
+                    ),
+                ],
+                style={"position": "relative"},
+            ),
             map_component,
             create_map_legend(is_leak_view=is_leak_view),
+            # School count badge
+            html.Div(
+                [
+                    html.Span(
+                        f"{len(schools)} ",
+                        style={"fontWeight": "700", "fontSize": "14px"},
+                    ),
+                    html.Span(
+                        "schools" if len(schools) != 1 else "school",
+                        style={"fontSize": "12px"},
+                    ),
+                ],
+                style={
+                    "position": "absolute",
+                    "top": "10px",
+                    "left": "50%",
+                    "transform": "translateX(-50%)",
+                    "backgroundColor": "white",
+                    "padding": "6px 14px",
+                    "borderRadius": "20px",
+                    "boxShadow": "0 2px 8px rgba(0,0,0,0.15)",
+                    "zIndex": "1000",
+                    "color": "#374151",
+                },
+            ),
         ],
-        style={"position": "relative", "borderRadius": "12px", "overflow": "hidden"},
+        style={
+            "position": "relative",
+            "borderRadius": "12px",
+            "overflow": "hidden",
+            "border": "1px solid rgba(255, 255, 255, 0.1)",
+        },
     )
 
 
