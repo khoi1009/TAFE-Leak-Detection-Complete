@@ -384,6 +384,9 @@ def register_callbacks(app):
             halted = False
             incidents = []
             session_incidents = []
+            # Track by site_id + start_day (not full event_id which includes end_day)
+            # This ensures we only keep ONE card per leak event, updated with latest state
+            session_incident_map = {}  # key: "site_id::start_day" -> index
             all_confirmed = []
             sid_to_det = {}
 
@@ -466,6 +469,14 @@ def register_callbacks(app):
                     min_kL = float(flt.get("min_volume_kL", 0) or 0)
 
                     for inc in incs:
+                        event_id = inc.get("event_id")
+                        site_id = inc.get("site_id", sid)
+                        start_day = inc.get("start_day", "")
+
+                        # Create a dedup key using site_id + start_day
+                        # This groups all daily updates of the SAME leak event together
+                        dedup_key = f"{site_id}::{start_day}"
+
                         ad = pd.to_datetime(
                             inc.get("alert_date", inc["last_day"])
                         ).normalize()
@@ -483,7 +494,17 @@ def register_callbacks(app):
                             )
                             >= min_kL
                         ):
-                            session_incidents.append(inc)
+                            # If this leak event already exists (same site + start_day),
+                            # UPDATE with latest state (more volume, longer duration, higher confidence)
+                            if dedup_key in session_incident_map:
+                                idx = session_incident_map[dedup_key]
+                                session_incidents[idx] = inc  # Replace with latest
+                            else:
+                                # New leak event - add to list
+                                session_incidents.append(inc)
+                                session_incident_map[dedup_key] = (
+                                    len(session_incidents) - 1
+                                )
 
                     if isinstance(cdf, pd.DataFrame) and not cdf.empty:
                         cdf = cdf.copy()
@@ -563,6 +584,18 @@ def register_callbacks(app):
                 state["current"] = current.strftime("%Y-%m-%d")
 
             if not halted:
+                # DEBUG: Log session_incidents deduplication result
+                log_step(
+                    f"🔍 DEBUG: session_incidents has {len(session_incidents)} items"
+                )
+                log_step(
+                    f"🔍 DEBUG: session_incident_map keys: {list(session_incident_map.keys())}"
+                )
+                for idx, inc in enumerate(session_incidents):
+                    log_step(
+                        f"🔍 DEBUG: [{idx}] event_id={inc.get('event_id')} start={inc.get('start_day')} end={inc.get('last_day')}"
+                    )
+
                 left_panel_children = [
                     make_incident_card(inc.get("site_id"), inc, None)
                     for inc in session_incidents
@@ -984,6 +1017,30 @@ def register_callbacks(app):
         )
 
     # -------------------------
+    # Select Incident Button Handler
+    # -------------------------
+    @app.callback(
+        Output("store-selected-event", "data", allow_duplicate=True),
+        Input({"type": "evt-select", "index": ALL}, "n_clicks"),
+        State({"type": "evt-select", "index": ALL}, "id"),
+        prevent_initial_call=True,
+    )
+    def handle_select_incident(n_clicks_list, button_ids):
+        """Handle clicking the 'View' button on incident cards to select that incident"""
+        if not n_clicks_list or not any(n_clicks_list):
+            return dash.no_update
+
+        # Find which button was clicked
+        triggered = ctx.triggered_id
+        if triggered and isinstance(triggered, dict):
+            event_id = triggered.get("index")
+            if event_id:
+                log.info(f"📊 User selected incident: {event_id}")
+                return event_id
+
+        return dash.no_update
+
+    # -------------------------
     # Event Detail Rendering
     # -------------------------
     @app.callback(
@@ -1094,27 +1151,104 @@ def register_callbacks(app):
             )
             return (
                 dbc.Alert(
-                    "Select an incident to view details", color="info", className="mb-2"
+                    [
+                        html.Span("👆 ", style={"fontSize": "1.1rem"}),
+                        "Click ",
+                        html.Strong("📊 View"),
+                        " on an incident card to see its charts",
+                    ],
+                    color="info",
+                    className="mb-2",
                 ),
                 _safe_indicator("Confidence", 0),
                 empty_evo_fig,
                 [],
             )
 
-        # Header
+        # Calculate duration
+        start_dt = pd.to_datetime(inc.get("start_day"))
+        end_dt = pd.to_datetime(inc.get("last_day"))
+        duration_days = (end_dt - start_dt).days + 1
+        vol_kl = inc.get("volume_lost_kL", inc.get("ui_total_volume_kL", 0))
+
+        # Header - Enhanced to clearly show selected incident
         hdr = html.Div(
             [
-                html.H5(
-                    f"Event {inc.get('event_id', 'Unknown')} — {site_for_event}",
-                    style={"fontSize": "1.15rem", "marginBottom": "0.4rem"},
-                ),
+                # Selected indicator banner
                 html.Div(
-                    f"{pd.to_datetime(inc.get('start_day')).date()} → {pd.to_datetime(inc.get('last_day')).date()} | "
-                    f"Status: {inc.get('status', '?')} | Severity: {inc.get('severity_max', '?')}",
-                    className="text-muted",
-                    style={"fontSize": "0.9rem"},
+                    [
+                        html.Span("📊 ", style={"fontSize": "1rem"}),
+                        html.Span(
+                            "Viewing Charts For:",
+                            style={"fontWeight": "500", "color": "#60A5FA"},
+                        ),
+                    ],
+                    style={
+                        "marginBottom": "6px",
+                        "fontSize": "0.85rem",
+                    },
                 ),
-            ]
+                # Event ID and Site
+                html.H5(
+                    [
+                        html.Code(
+                            inc.get("event_id", "Unknown")[:16],
+                            style={
+                                "backgroundColor": "rgba(59,130,246,0.2)",
+                                "color": "#60A5FA",
+                                "padding": "2px 8px",
+                                "borderRadius": "4px",
+                                "fontSize": "1rem",
+                            },
+                        ),
+                        html.Span(
+                            f" — {site_for_event}",
+                            style={"color": "#A1A1AA", "fontSize": "0.95rem"},
+                        ),
+                    ],
+                    style={"marginBottom": "0.5rem"},
+                ),
+                # Quick stats row
+                html.Div(
+                    [
+                        html.Span(
+                            f"📅 {start_dt.strftime('%b %d')} → {end_dt.strftime('%b %d, %Y')}",
+                            style={"marginRight": "12px"},
+                        ),
+                        html.Span(
+                            f"⏱️ {duration_days} days",
+                            style={"marginRight": "12px", "color": "#F59E0B"},
+                        ),
+                        html.Span(
+                            f"💧 {vol_kl:.1f} kL",
+                            style={"marginRight": "12px", "color": "#EF4444"},
+                        ),
+                        html.Span(
+                            f"Status: ",
+                            style={"color": "#71717A"},
+                        ),
+                        html.Span(
+                            inc.get("status", "?"),
+                            style={
+                                "fontWeight": "600",
+                                "color": (
+                                    "#22C55E"
+                                    if inc.get("status") == "RESOLVED"
+                                    else "#F59E0B"
+                                ),
+                            },
+                        ),
+                    ],
+                    className="text-muted",
+                    style={"fontSize": "0.85rem"},
+                ),
+            ],
+            style={
+                "padding": "10px 12px",
+                "backgroundColor": "rgba(59,130,246,0.1)",
+                "borderRadius": "8px",
+                "borderLeft": "3px solid #3B82F6",
+            },
         )
 
         # Gauges

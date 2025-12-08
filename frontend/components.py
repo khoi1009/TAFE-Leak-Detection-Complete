@@ -245,17 +245,19 @@ def make_incident_card(site_id, inc, detector):
                             "gap": "4px",
                         },
                     ),
-                    # Select button in header
+                    # Select button - View Charts for this incident
                     dbc.Button(
-                        "🎯",
+                        [html.Span("📊 View", style={"fontSize": "0.8rem"})],
                         id={"type": "evt-select", "index": event_id},
-                        color="link",
+                        color="info",
                         size="sm",
+                        outline=True,
                         style={
-                            "padding": "2px 6px",
-                            "fontSize": "0.85rem",
-                            "opacity": "0.7",
+                            "padding": "2px 8px",
+                            "fontSize": "0.8rem",
+                            "borderRadius": "4px",
                         },
+                        title="View charts for this incident",
                     ),
                 ],
                 style={
