@@ -43,19 +43,7 @@ This starts all 3 services automatically:
 
 Runs dashboard on port 8050 without authentication.
 
-### Option 3: With Landing Page
-
-```powershell
-# Terminal 1 - Landing Page (requires Node.js)
-cd ../AQUA-GOV-Landing-Page/src/aqua-gov-app
-npm run dev
-# Opens at http://localhost:3000
-
-# Terminal 2 - Login + Dashboard
-.\start_all.bat
-```
-
-### Option 4: Manual Start
+### Option 3: Manual Start
 
 ```powershell
 # Terminal 1 - Backend
@@ -72,6 +60,63 @@ python app.py
 cd frontend
 python login_app.py
 ```
+
+---
+
+## 🌐 Landing Page Setup
+
+The WaterWatch Landing Page is a separate Next.js project that provides a marketing/intro page.
+
+### Prerequisites
+
+- **Node.js** v18+ installed ([Download](https://nodejs.org/))
+
+### Step 1: Clone or Download the Landing Page
+
+The Landing Page is located in a separate folder: `AQUA-GOV-Landing-Page`
+
+```
+📁 End Use Projects/
+├── 📁 TAFE-Leak-Detection-Complete/   ← Main project (this repo)
+└── 📁 AQUA-GOV-Landing-Page/          ← Landing page
+    └── 📁 src/aqua-gov-app/           ← Next.js app
+```
+
+### Step 2: Install Dependencies (First Time Only)
+
+```powershell
+cd "AQUA-GOV-Landing-Page/src/aqua-gov-app"
+npm install
+```
+
+### Step 3: Start the Landing Page
+
+```powershell
+npm run dev
+```
+
+### Step 4: Open in Browser
+
+🌐 **http://localhost:3000**
+
+### Running Full System
+
+Open **3 terminals** for the complete experience:
+
+| Terminal        | Command                                                                    | URL                   |
+| --------------- | -------------------------------------------------------------------------- | --------------------- |
+| 1️⃣ Landing Page | `cd AQUA-GOV-Landing-Page/src/aqua-gov-app && npm run dev`                 | http://localhost:3000 |
+| 2️⃣ Login Portal | `cd TAFE-Leak-Detection-Complete/frontend && python login_app.py`          | http://localhost:8050 |
+| 3️⃣ Backend API  | `cd TAFE-Leak-Detection-Complete/backend && uvicorn app.main:app --reload` | http://localhost:8000 |
+
+### User Flow
+
+```
+Landing Page → Click "Access Demo" → Login Portal → Enter Credentials → Dashboard
+   :3000              ↓                  :8050           ↓              :8051
+```
+
+---
 
 ## 🔐 Default Credentials
 
