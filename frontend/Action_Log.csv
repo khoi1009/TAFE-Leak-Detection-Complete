@@ -97,3 +97,5 @@ timestamp,site_id,event_id,start_day,end_day,status,action,notes,user,resolution
 2025-12-08 13:16:38.954683,Property 11127,Property 11127__2024-12-02__2024-12-05,2024-12-02,2024-12-05,CALL,Acknowledge,,,,,,,,,,
 2025-12-08 13:19:47.962750,Property 11127,Property 11127__2024-12-02__2024-12-05,2024-12-02,2024-12-05,CALL,Ignore,,,,,,,,,,
 2025-12-08 14:31:58.695988,Property 11127,Property 11127__2024-12-02__2024-12-05,2024-12-02,2024-12-05,CALL,Acknowledge,,,,,,,,,,
+2025-12-08 19:32:34.789786,Property 11127,Property 11127__2024-12-02__2024-12-05,2024-12-02,2024-12-05,CALL,Acknowledge,,,,,,,,,,
+2025-12-08 19:33:48.938899,Property 11127,Property 11127__2024-12-02__2024-12-05,2024-12-02,2024-12-05,CALL,Acknowledge,,,,,,,,,,

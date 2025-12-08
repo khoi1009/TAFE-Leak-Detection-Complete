@@ -295,6 +295,50 @@ GET /api/v1/schools/search  - Search schools
 GET /api/v1/schools/alerts  - Schools with alerts
 ```
 
+## 🔬 Developer Notes
+
+### Water Usage Pattern Chart - Live System Considerations
+
+The **"Water Usage Pattern: Normal vs Leak Period"** chart (in the Pattern Tab) compares water consumption patterns before and during a leak event. When developing a real-time live system, note the following:
+
+**Current Implementation** (`Model_1_realtime_simulation.py` → `_create_enhanced_heatmap`):
+
+| Data Type       | Current Logic                                      | File Location                        |
+| --------------- | -------------------------------------------------- | ------------------------------------ |
+| **Normal Data** | 15 days before leak start (`half_window` = 15)     | `df_reset["time"] < start`           |
+| **Leak Data**   | From `start` to `end` (uses historical leak dates) | `df_reset["time"] >= start & <= end` |
+
+**For LIVE Systems:**
+
+The `leak_data` currently uses a fixed `end` date from historical records. In a **real-time live system**, you'll need to modify this to use the current timestamp:
+
+```python
+# Current (Historical Mode):
+leak_data = df_reset[(df_reset["time"] >= start) & (df_reset["time"] <= end)]
+
+# Modification for Live Mode:
+from datetime import datetime
+current_time = datetime.now()
+leak_data = df_reset[(df_reset["time"] >= start) & (df_reset["time"] <= current_time)]
+```
+
+**Recommended Enhancement:**
+
+Add a `live_mode` parameter to the `_create_enhanced_heatmap` function:
+
+```python
+def _create_enhanced_heatmap(self, df_window, start, end, live_mode=False):
+    # For live mode, use current time instead of historical end date
+    end_time = datetime.now() if live_mode else end
+    leak_data = df_reset[(df_reset["time"] >= start) & (df_reset["time"] <= end_time)]
+```
+
+**Key Parameters:**
+
+- `window_days = 30` (default) - Total window for comparison
+- `half_window = 15` - Days before leak start for "normal" baseline
+- Location: `to_plotly_figs()` method, line ~995
+
 ## 🔧 Development
 
 ### Run Tests
