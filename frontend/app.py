@@ -139,6 +139,8 @@ if __name__ == "__main__":
     print("-" * 60)
     print("Demo Credentials: admin/admin123 or operator/operator123")
     print("=" * 60)
-    app.run(debug=DEBUG, host="127.0.0.1", port=PORT)
+    # Note: use_reloader=False is required because the Excel file loading
+    # conflicts with Werkzeug's auto-reloader on Windows
+    app.run(debug=False, host="127.0.0.1", port=PORT, use_reloader=False)
 
 # %%
