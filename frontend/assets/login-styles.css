@@ -1,0 +1,379 @@
+/* 
+ * WaterWatch Login Page Styles
+ * Deep Ocean Data Theme with Hydro-Pulse Loader
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Override reduced motion for login page animations */
+.login-page-root *, 
+.login-page-root *::before, 
+.login-page-root *::after {
+    animation-duration: revert !important;
+    animation-iteration-count: revert !important;
+    transition-duration: revert !important;
+}
+
+/* ========== Deep Ocean Background ========== */
+.login-page-root {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background: linear-gradient(135deg, #020617 0%, #0a1628 25%, #0c1e3d 50%, #0a1628 75%, #020617 100%) !important;
+    min-height: 100vh !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+}
+
+.login-page-root::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(ellipse 600px 400px at 15% 85%, rgba(6, 182, 212, 0.2) 0%, transparent 70%),
+        radial-gradient(ellipse 500px 350px at 85% 15%, rgba(20, 184, 166, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 300px at 50% 50%, rgba(8, 145, 178, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 200px 800px at 25% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 200px 800px at 75% 50%, rgba(20, 184, 166, 0.06) 0%, transparent 70%),
+        radial-gradient(circle 2px at 20% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+        radial-gradient(circle 2px at 80% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+        radial-gradient(circle 1px at 60% 20%, rgba(255, 255, 255, 0.25) 0%, transparent 100%),
+        radial-gradient(circle 1px at 40% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+    animation: oceanPulse 8s ease-in-out infinite;
+}
+
+.login-page-root::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.03) 50%, transparent 100%),
+        radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 0;
+    animation: waveFlow 12s ease-in-out infinite;
+}
+
+@keyframes oceanPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+}
+
+@keyframes waveFlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* ========== Login Container ========== */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* ========== Brand Header ========== */
+.brand-header {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.brand-logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.025em;
+}
+
+.brand-logo-text span {
+    color: #14b8a6;
+}
+
+.brand-tagline {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+/* ========== Login Card - Glassmorphism ========== */
+.login-card {
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(20, 184, 166, 0.2) !important;
+    border-radius: 20px !important;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(20px);
+    padding: 2rem 1.75rem !important;
+    max-width: 300px !important;
+    width: 100% !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #14b8a6, #06b6d4, #14b8a6);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ========== Login Header ========== */
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    border: 1px solid rgba(20, 184, 166, 0.3);
+    box-shadow: 0 8px 32px rgba(20, 184, 166, 0.15);
+}
+
+.login-icon {
+    font-size: 2rem;
+    color: #14b8a6;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.login-title {
+    color: #f1f5f9 !important;
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.login-subtitle {
+    color: #64748b !important;
+    font-size: 0.8rem !important;
+}
+
+/* ========== Form Styles ========== */
+.form-label-custom {
+    color: #94a3b8 !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+}
+
+.form-input {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(71, 85, 105, 0.5) !important;
+    color: #f1f5f9 !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+.form-input:focus {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: #14b8a6 !important;
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15) !important;
+    outline: none !important;
+}
+
+.form-input::placeholder {
+    color: #475569 !important;
+}
+
+/* ========== Login Button ========== */
+.login-btn {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.875rem 1.25rem !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.01em !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 14px rgba(20, 184, 166, 0.25) !important;
+    color: white !important;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(20, 184, 166, 0.35) !important;
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+}
+
+.login-btn:active {
+    transform: translateY(0) !important;
+}
+
+.login-btn:disabled {
+    opacity: 0.7 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* ========== Demo Credentials Box ========== */
+.demo-credentials {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(20, 184, 166, 0.05) 100%) !important;
+    border: 1px solid rgba(34, 197, 94, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 0.875rem 1rem !important;
+    margin-top: 1.25rem !important;
+}
+
+.demo-credentials h6 {
+    color: #22c55e !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.demo-credentials code {
+    background: rgba(15, 23, 42, 0.6) !important;
+    color: #e2e8f0 !important;
+    padding: 0.125rem 0.375rem !important;
+    border-radius: 4px !important;
+    font-size: 0.75rem !important;
+    font-family: 'SF Mono', 'Fira Code', monospace !important;
+    border: 1px solid rgba(71, 85, 105, 0.3) !important;
+}
+
+/* ========== Footer ========== */
+.footer-text {
+    text-align: center;
+    color: #475569 !important;
+    font-size: 0.7rem !important;
+    margin-top: 1.25rem;
+}
+
+.footer-text a {
+    color: #14b8a6 !important;
+    text-decoration: none !important;
+}
+
+.footer-text a:hover {
+    text-decoration: underline !important;
+}
+
+/* ========== Alerts ========== */
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    color: #fca5a5 !important;
+    border-radius: 10px !important;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1) !important;
+    border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    color: #86efac !important;
+    border-radius: 10px !important;
+}
+
+/* ========== Hydro-Pulse Loading Spinner ========== */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 0;
+}
+
+.hydro-pulse {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background: rgba(20, 184, 166, 0.4);
+    border-radius: 50%;
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite !important;
+}
+
+.hydro-pulse::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: #14b8a6;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+    animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite !important;
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes pulse-dot {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1); }
+    100% { transform: scale(0.8); }
+}
+
+.loading-text {
+    margin-top: 1rem;
+    color: #94a3b8 !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: text-fade 1.5s infinite ease-in-out !important;
+}
+
+@keyframes text-fade {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.loader-hidden {
+    display: none !important;
+}

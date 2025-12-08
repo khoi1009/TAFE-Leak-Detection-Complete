@@ -1,11 +1,24 @@
 # TAFE Leak Detection - Complete Edition 🌊
 
+> **WaterWatch** - Intelligent Water Leak Detection for NSW Government Assets
+
 A comprehensive water leak detection system for NSW schools featuring:
 
+- **Landing Page** - Modern Next.js marketing page with Tailwind CSS
+- **Login Portal** - Deep Ocean themed authentication with Glassmorphism UI
 - **FastAPI Backend** with JWT authentication
-- **Dash Frontend** with UI UX Pro Max design
+- **Dash Dashboard** with UI UX Pro Max design
 - **GIS Map Integration** with interactive school locations
 - **Real-time Simulation** with ML-based anomaly detection
+
+## 🎨 Design Theme
+
+The system uses a **"Deep Ocean Data"** aesthetic:
+
+- 🌊 Navy blue gradient backgrounds with bioluminescent cyan glows
+- 💧 Glassmorphism card effects with backdrop blur
+- ✨ Hydro-Pulse loading animations
+- 🎬 Smooth transitions and floating elements
 
 ## 🚀 Quick Start
 
@@ -30,7 +43,19 @@ This starts all 3 services automatically:
 
 Runs dashboard on port 8050 without authentication.
 
-### Option 3: Manual Start
+### Option 3: With Landing Page
+
+```powershell
+# Terminal 1 - Landing Page (requires Node.js)
+cd ../AQUA-GOV-Landing-Page/src/aqua-gov-app
+npm run dev
+# Opens at http://localhost:3000
+
+# Terminal 2 - Login + Dashboard
+.\start_all.bat
+```
+
+### Option 4: Manual Start
 
 ```powershell
 # Terminal 1 - Backend
@@ -78,14 +103,15 @@ TAFE-Leak-Detection-Complete/
 │
 ├── frontend/                   # Dash Dashboard
 │   ├── assets/                # CSS styling
-│   │   ├── design-system.css  # UI UX Pro Max
-│   │   └── responsive.css     # Mobile support
+│   │   ├── login-styles.css   # Login page styles (Deep Ocean theme)
+│   │   ├── _design-system.css # Dashboard UI UX Pro Max
+│   │   └── _responsive.css    # Mobile support
 │   ├── data/                  # Demo data
 │   │   ├── demo_data.xlsx     # Water consumption
 │   │   ├── demo_school_mapping.csv
 │   │   └── demo_schools_gis.json
 │   ├── app.py                 # Main dashboard
-│   ├── login_app.py           # Login portal
+│   ├── login_app.py           # Login portal (WaterWatch themed)
 │   ├── callbacks.py           # Dash callbacks
 │   ├── components.py          # UI components
 │   ├── components_map.py      # GIS Map component
@@ -108,14 +134,31 @@ TAFE-Leak-Detection-Complete/
 
 ## 🌐 Access Points
 
-| Service      | URL                          | Description         |
-| ------------ | ---------------------------- | ------------------- |
-| Login Portal | http://127.0.0.1:8050        | Authentication page |
-| Dashboard    | http://127.0.0.1:8051        | Main dashboard      |
-| API Docs     | http://127.0.0.1:8000/docs   | Swagger UI          |
-| API Health   | http://127.0.0.1:8000/health | Health check        |
+| Service      | URL                          | Description               |
+| ------------ | ---------------------------- | ------------------------- |
+| Landing Page | http://localhost:3000        | Marketing page (Next.js)  |
+| Login Portal | http://127.0.0.1:8050        | WaterWatch authentication |
+| Dashboard    | http://127.0.0.1:8051        | Main dashboard            |
+| API Docs     | http://127.0.0.1:8000/docs   | Swagger UI                |
+| API Health   | http://127.0.0.1:8000/health | Health check              |
 
 ## ✨ Features
+
+### 🎨 Login Portal (WaterWatch Theme)
+
+- **Deep Ocean Background** - Animated navy/cyan gradients with bioluminescent glows
+- **Glassmorphism Card** - Frosted glass effect with shimmer border animation
+- **Hydro-Pulse Loader** - Water ripple animation during authentication
+- **Compact Form** - 300px width for clean, focused input
+
+### 🌐 Landing Page (Next.js)
+
+- **Hero Section** - Bold tagline with animated water droplet
+- **Problem/Solution** - Clear value proposition
+- **Feature Highlights** - AI detection, real-time monitoring, cost savings
+- **Statistics** - Impact numbers with animated counters
+- **Demo Access** - Direct links to login portal
+- **Responsive** - Mobile-first design with Tailwind CSS
 
 ### 🔍 Leak Detection Engine
 
@@ -229,6 +272,22 @@ del leak_detection.db
 
 ## 📝 Changelog
 
+### v2.1.0 - WaterWatch Edition (December 2025)
+
+- ✅ Rebranded from "AQUA-GOV" to **WaterWatch**
+- ✅ New **Deep Ocean Data** login theme
+  - Animated gradient background with bioluminescent glows
+  - Glassmorphism card with shimmer border
+  - Hydro-Pulse loading spinner
+  - Compact 300px form width
+- ✅ Created Next.js **Landing Page** (localhost:3000)
+  - Hero, Features, Statistics, Demo Access sections
+  - Tailwind CSS styling
+  - Links to Login Portal
+- ✅ Separated CSS for Login vs Dashboard
+  - `login-styles.css` - Deep Ocean theme
+  - `_design-system.css` - Dashboard theme (prefixed to avoid auto-load)
+
 ### v2.0.0 - Complete Edition (December 2025)
 
 - ✅ Combined Dashboard + Production repos
@@ -244,6 +303,21 @@ del leak_detection.db
 - ✅ UI UX Pro Max design
 - ✅ Leak detection engine
 
+## 🎨 Related Projects
+
+### WaterWatch Landing Page
+
+Located at: `../AQUA-GOV-Landing-Page/src/aqua-gov-app/`
+
+```powershell
+# To run the landing page
+cd ../AQUA-GOV-Landing-Page/src/aqua-gov-app
+npm install
+npm run dev
+```
+
+**Tech Stack:** Next.js 13.5.6, React 18, Tailwind CSS 3
+
 ## 👥 Contributors
 
 - **TAFE NSW** - Project sponsor
@@ -258,4 +332,4 @@ Proprietary - TAFE NSW / Griffith University
 
 **GitHub Repository:** https://github.com/khoi1009/TAFE-Leak-Detection-Complete
 
-Last Updated: December 6, 2025
+Last Updated: December 8, 2025

@@ -92,8 +92,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
-    username: Annotated[str, Form()],
-    password: Annotated[str, Form()],
+    username: str = Form(...),
+    password: str = Form(...),
     db: AsyncSession = Depends(get_db),
 ):
     """Login and get access token."""
