@@ -1375,3 +1375,85 @@ button:focus-visible,
     padding: 6px 12px;
 }
 
+/* ============================================
+   GIS MAP ENHANCEMENTS
+   Leaflet marker animations for leak alerts
+   ============================================ */
+
+/* Pulse animation for active leak markers */
+@keyframes mapPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.85;
+    }
+}
+
+/* Apply pulse to CircleMarker SVG elements with leak/critical status */
+.leaflet-interactive[stroke="#EF4444"],
+.leaflet-interactive[stroke="#F97316"] {
+    animation: mapPulse 2s ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* Subtle glow effect for critical markers */
+.leaflet-interactive[stroke="#EF4444"] {
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.5));
+}
+
+/* Warning markers glow */
+.leaflet-interactive[stroke="#F97316"] {
+    filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.4));
+}
+
+/* Dark theme for Leaflet popups */
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card, #1C1C1F);
+    border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+    border-radius: 12px;
+    box-shadow: var(--shadow-xl);
+}
+
+.leaflet-popup-content {
+    margin: 12px 14px;
+    color: var(--text-primary, #F4F4F5);
+    font-family: var(--font-sans);
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-card, #1C1C1F);
+    border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+}
+
+.leaflet-popup-close-button {
+    color: var(--text-muted, #71717A) !important;
+    font-size: 18px !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: var(--text-primary, #F4F4F5) !important;
+}
+
+/* ============================================
+   STAGGERED INCIDENT CARD ANIMATIONS
+   Cards animate in sequence for visual polish
+   ============================================ */
+@media (prefers-reduced-motion: no-preference) {
+    .incident-card:nth-child(1) { animation-delay: 0s; }
+    .incident-card:nth-child(2) { animation-delay: 0.05s; }
+    .incident-card:nth-child(3) { animation-delay: 0.1s; }
+    .incident-card:nth-child(4) { animation-delay: 0.15s; }
+    .incident-card:nth-child(5) { animation-delay: 0.2s; }
+    .incident-card:nth-child(6) { animation-delay: 0.25s; }
+    .incident-card:nth-child(7) { animation-delay: 0.3s; }
+    .incident-card:nth-child(8) { animation-delay: 0.35s; }
+    .incident-card:nth-child(9) { animation-delay: 0.4s; }
+    .incident-card:nth-child(10) { animation-delay: 0.45s; }
+
+    /* For cards 11+, use a max delay to prevent excessive wait */
+    .incident-card:nth-child(n+11) { animation-delay: 0.5s; }
+}
+

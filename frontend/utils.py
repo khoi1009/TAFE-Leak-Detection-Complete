@@ -107,12 +107,14 @@ def get_chart_theme():
         "colorway": CHART_COLORS,
         "hoverlabel": {
             "bgcolor": "#1C1C1F",
-            "bordercolor": "rgba(255, 255, 255, 0.1)",
+            "bordercolor": "rgba(59, 130, 246, 0.3)",  # Primary blue subtle border
             "font": {
                 "family": "Fira Sans, sans-serif",
                 "size": 13,
-                "color": "#F4F4F5",  # Light text for dark background
+                "color": "#F4F4F5",
             },
+            "align": "left",
+            "namelength": -1,  # Show full trace name
         },
         "legend": {
             "bgcolor": "rgba(0,0,0,0)",
