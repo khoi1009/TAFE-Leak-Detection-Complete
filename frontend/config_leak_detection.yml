@@ -10,12 +10,6 @@ spike_multiplier: 2.0
 spike_ref_percentile: 95
 cusum_k: 0.5
 cusum_h: 4.0
-score_weights:
-  MNF: 0.40
-  RESIDUAL: 0.20
-  CUSUM: 0.20
-  AFTERHRS: 0.10
-  BURSTBF: 0.10
 persistence_gates:
   "<100":
     default_min: 9
