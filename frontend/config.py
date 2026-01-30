@@ -14,16 +14,19 @@ import logging
 # Global Constants
 # -------------------------
 
+# Use absolute path relative to this script's location to avoid CWD issues
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 APP_TITLE = "💦 Smart Leak Detection — TAFE and Schools"
-CONFIG_FILE = "config_leak_detection.yml"
-ACTION_LOG = "Action_Log.csv"
+CONFIG_FILE = os.path.join(_SCRIPT_DIR, "config_leak_detection.yml")
+ACTION_LOG = os.path.join(_SCRIPT_DIR, "Action_Log.csv")
 
 # -------------------------
 # Logging Setup
 # -------------------------
 
-# Ensure logs folder exists
-os.makedirs("logs", exist_ok=True)
+# Ensure logs folder exists (in script directory)
+os.makedirs(os.path.join(_SCRIPT_DIR, "logs"), exist_ok=True)
 
 # Safe UTF-8 stdout wrapping (only in real Python console, not Jupyter)
 if hasattr(sys.stdout, "buffer"):
@@ -34,7 +37,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     handlers=[
-        logging.FileHandler("logs/dashboard.log", encoding="utf-8"),
+        logging.FileHandler(os.path.join(_SCRIPT_DIR, "logs", "dashboard.log"), encoding="utf-8"),
         logging.StreamHandler(sys.stderr),
     ],
 )
@@ -104,6 +107,12 @@ else:
     cfg = DEFAULT_CFG.copy()
     log.warning("config_leak_detection.yml not found. Using safe defaults.")
 
+# Convert relative paths in cfg to absolute paths based on script directory
+cfg["export_folder"] = os.path.join(_SCRIPT_DIR, cfg.get("export_folder", "export"))
+cfg["save_dir"] = os.path.join(_SCRIPT_DIR, cfg.get("save_dir", "plots"))
+cfg["data_path"] = os.path.join(_SCRIPT_DIR, cfg.get("data_path", "data.xlsx"))
+
 # Create necessary directories
-os.makedirs(cfg.get("export_folder", "export"), exist_ok=True)
-os.makedirs(cfg.get("save_dir", "plots"), exist_ok=True)
+os.makedirs(cfg.get("export_folder"), exist_ok=True)
+os.makedirs(cfg.get("save_dir"), exist_ok=True)
+
